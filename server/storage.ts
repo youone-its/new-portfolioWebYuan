@@ -11,7 +11,7 @@ import {
   type InsertSkill,
   type Achievement,
   type InsertAchievement,
-} from "@shared/schema";
+} from "../shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 

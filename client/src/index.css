@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(30, 10%, 7%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(30, 10%, 7%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(30, 10%, 7%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(210, 40%, 98%);
+  --secondary-foreground: hsl(222, 84%, 4.9%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(355, 7%, 97%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(207, 90%, 54%);
+  --radius: 0.5rem;
+  
+  /* Custom colors from design */
+  --text-light: hsl(213, 31%, 17%);
+  --text-dark: hsl(213, 31%, 92%);
+  --dark-navy: hsl(222, 84%, 5%);
+}
+
+.dark {
+  --background: hsl(222, 84%, 5%);
+  --foreground: hsl(213, 31%, 92%);
+  --muted: hsl(217, 32%, 15%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --popover: hsl(222, 84%, 5%);
+  --popover-foreground: hsl(213, 31%, 92%);
+  --card: hsl(222, 84%, 5%);
+  --card-foreground: hsl(213, 31%, 92%);
+  --border: hsl(217, 32%, 15%);
+  --input: hsl(217, 32%, 15%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(217, 32%, 15%);
+  --secondary-foreground: hsl(213, 31%, 92%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(355, 7%, 97%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(207, 90%, 54%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .sidebar {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .sidebar.collapsed {
+    @apply w-16;
+  }
+  
+  .sidebar.collapsed .nav-text {
+    @apply hidden;
+  }
+  
+  .sidebar.collapsed .logo-text {
+    @apply hidden;
+  }
+  
+  .page {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .active-nav {
+    @apply bg-primary bg-opacity-10 border-l-4 border-primary;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .card-hover:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
+  
+  .dark .card-hover:hover {
+    @apply shadow-2xl;
+  }
+  
+  .modal-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .modal-hidden {
+    @apply opacity-0 pointer-events-none scale-95;
+  }
+  
+  .modal-visible {
+    @apply opacity-100 pointer-events-auto scale-100;
+  }
+  
+  .upload-area {
+    @apply border-2 border-dashed border-primary transition-all duration-300 ease-in-out;
+  }
+  
+  .upload-area:hover {
+    @apply bg-primary bg-opacity-5;
+  }
+  
+  .project-card {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .project-card:hover {
+    @apply -translate-y-1 shadow-xl;
+  }
+  
+  .dark .project-card:hover {
+    @apply shadow-2xl;
+  }
+  
+  .skill-progress {
+    @apply transition-all duration-1000 ease-in-out;
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

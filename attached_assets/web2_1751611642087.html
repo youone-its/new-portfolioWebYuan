@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Yuan's Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            .sidebar {
+                transition: all 0.3s ease;
+            }
+            .sidebar.collapsed {
+                width: 70px;
+            }
+            .sidebar.collapsed .nav-text {
+                display: none;
+            }
+            .sidebar.collapsed .logo-text {
+                display: none;
+            }
+            .page {
+                transition: all 0.3s ease;
+            }
+            .active-nav {
+                background-color: rgba(59, 130, 246, 0.2);
+                border-left: 4px solid rgb(59, 130, 246);
+            }
+            .dark .active-nav {
+                background-color: rgba(59, 130, 246, 0.3);
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+            .dark .card-hover:hover {
+                box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
+            }
+            .skill-bar {
+                transition: width 1.5s ease-in-out;
+            }
+            #loginModal, #registerModal {
+                transition: all 0.3s ease;
+            }
+            .modal-hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+            .modal-visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        </style>
+    </head>
+
+    <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+        <!-- Login Modal -->
+        <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-visible">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-md">
+                <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+                <div id="loginError" class="text-red-500 mb-4 hidden">Invalid username or password</div>
+                <form id="loginForm">
+                    <div class="mb-4">
+                        <label for="loginUsername" class="block mb-2">Username</label>
+                        <input type="text" id="loginUsername" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <div class="mb-6">
+                        <label for="loginPassword" class="block mb-2">Password</label>
+                        <input type="password" id="loginPassword" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">Login</button>
+                </form>
+                <p class="mt-4 text-center">Don't have an account? <button id="showRegister" class="text-blue-500 hover:underline">Register</button></p>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-md">
+                <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
+                <div id="registerError" class="text-red-500 mb-4 hidden">Registration failed</div>
+                <div id="registerSuccess" class="text-green-500 mb-4 hidden">Registration successful! Please login.</div>
+                <form id="registerForm">
+                    <div class="mb-4">
+                        <label for="registerUsername" class="block mb-2">Username</label>
+                        <input type="text" id="registerUsername" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <div class="mb-4">
+                        <label for="registerEmail" class="block mb-2">Email</label>
+                        <input type="email" id="registerEmail" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <div class="mb-6">
+                        <label for="registerPassword" class="block mb-2">Password</label>
+                        <input type="password" id="registerPassword" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">Register</button>
+                </form>
+                <p class="mt-4 text-center">Already have an account? <button id="showLogin" class="text-blue-500 hover:underline">Login</button></p>
+            </div>
+        </div>
+
+        <!-- Main Layout (hidden until login) -->
+        <div id="mainLayout" class="hidden">
+            <!-- Sidebar -->
+            <div class="sidebar fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-gray-800 shadow-lg z-40">
+                <div class="p-4 flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">Y</div>
+                    <span class="logo-text ml-3 text-xl font-bold">Yuan's Dashboard</span>
+                </div>
+                <div class="mt-6">
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 active-nav" data-page="home">
+                        <i class="fas fa-home w-6 text-center"></i>
+                        <span class="nav-text ml-3">Home</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="about">
+                        <i class="fas fa-user w-6 text-center"></i>
+                        <span class="nav-text ml-3">About</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="achievements">
+                        <i class="fas fa-trophy w-6 text-center"></i>
+                        <span class="nav-text ml-3">Achievements</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="organizations">
+                        <i class="fas fa-users w-6 text-center"></i>
+                        <span class="nav-text ml-3">Organizations</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="skills">
+                        <i class="fas fa-code w-6 text-center"></i>
+                        <span class="nav-text ml-3">Skills & Experience</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="projects">
+                        <i class="fab fa-github w-6 text-center"></i>
+                        <span class="nav-text ml-3">Projects</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="blog">
+                        <i class="fas fa-blog w-6 text-center"></i>
+                        <span class="nav-text ml-3">Blog</span>
+                    </div>
+                    <div class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" data-page="contact">
+                        <i class="fas fa-envelope w-6 text-center"></i>
+                        <span class="nav-text ml-3">Contact</span>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-0 right-0 px-4">
+                    <button id="toggleSidebar" class="w-full py-2 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="nav-text ml-2">Collapse</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="page ml-64 p-6 transition-all duration-300">
+                <!-- Top Bar -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 id="pageTitle" class="text-2xl font-bold">Dashboard</h1>
+                    <div class="flex items-center space-x-4">
+                        <button id="themeToggle" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">Y</div>
+                            <span class="ml-2 hidden md:inline">Yuan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Content -->
+                <div id="pageContent">
+                    <!-- Home Page -->
+                    <div id="homePage" class="page-content">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Welcome Card -->
+                            <div class="col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover transition-all">
+                                <h2 class="text-xl font-bold mb-2">Welcome back, Yuan!</h2>
+                                <p class="text-gray-600 dark:text-gray-300">Here's what's happening with your dashboard today.</p>
+                            </div>
+                            
+                            <!-- Stats Cards -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover transition-all">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300">
+                                        <i class="fas fa-project-diagram"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Projects</p>
+                                        <h3 class="text-xl font-bold">24</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover transition-all">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 text-green-500 dark:text-green-300">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Achievements</p>
+                                        <h3 class="text-xl font-bold">15</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover transition-all">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-500 dark:text-purple-300">
+                                        <i class="fas fa-code"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Skills</p>
+                                        <h3 class="text-xl font-bold">12</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recent Activity -->
+                            <div class="col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover transition-all">
+                                <h3 class="font-bold mb-4">Recent Activity</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-start">
+                                        <div class="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                                            <i class="fas fa-code-branch text-blue-500"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="font-medium">Pushed new commit to <span class="text-blue-500">portfolio-website</span></p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                                            <i class="fas fa-trophy text-yellow-500"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="font-medium">Received <span class="text-yellow-500">Hackathon Winner</span> award</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">1 day ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                                            <i class="fas fa-users text-green-500"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="font-medium">Joined <span class="text-green-500">Developer Community</span> organization</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">3 days ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover transition-all">
+                                <h3 class="font-bold mb-4">Quick Actions</h3>
+                                <div class="space-y-3">
+                                    <button class="w-full flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded">
+                                        <span>Add Project</span>
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button class="w-full flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded">
+                                        <span>Update Profile</span>
+                                        <i class="fas fa-user-edit"></i>
+                                    </button>
+                                    <button class="w-full flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded">
+                                        <span>Share Portfolio</span>
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Page -->
+                    <div id="aboutPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <div class="flex flex-col md:flex-row items-center">
+                                <div class="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 mb-4 md:mb-0 md:mr-6 overflow-hidden">
+                                    <img src="https://via.placeholder.com/150" alt="Profile" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <h2 class="text-2xl font-bold">Yuan</h2>
+                                    <p class="text-blue-500 mb-2">Full Stack Developer</p>
+                                    <p class="text-gray-600 dark:text-gray-300">Passionate about creating innovative solutions and contributing to open-source projects. With 5 years of experience in web development, I specialize in building scalable applications with modern technologies.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 class="font-bold mb-4 text-lg">Personal Information</h3>
+                                <div class="space-y-3">
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-500 dark:text-gray-400">Email:</span>
+                                        <span>yuan@example.com</span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-500 dark:text-gray-400">Phone:</span>
+                                        <span>+1 (123) 456-7890</span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-500 dark:text-gray-400">Location:</span>
+                                        <span>San Francisco, CA</span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-500 dark:text-gray-400">Birthday:</span>
+                                        <span>January 15, 1990</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 class="font-bold mb-4 text-lg">Education</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="font-medium">Master in Computer Science</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Stanford University (2015-2017)</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Bachelor in Software Engineering</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">University of California (2011-2015)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-2">
+                                <h3 class="font-bold mb-4 text-lg">Bio</h3>
+                                <p class="mb-4 text-gray-600 dark:text-gray-300">I'm a passionate developer with expertise in JavaScript, React, Node.js, and cloud technologies. My journey in tech started when I built my first website at 15, and since then I've been fascinated by the power of code to solve problems and create value.</p>
+                                <p class="text-gray-600 dark:text-gray-300">When I'm not coding, you can find me hiking, reading sci-fi novels, or mentoring junior developers. I believe in continuous learning and sharing knowledge with the community.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievements Page -->
+                    <div id="achievementsPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <h2 class="text-2xl font-bold mb-4">My Achievements</h2>
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">Here are some of my notable accomplishments and recognitions throughout my career.</p>
+                            
+                            <div class="space-y-6">
+                                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                    <h3 class="font-bold text-lg">Hackathon Winner 2023</h3>
+                                    <p class="text-gray-600 dark:text-gray-300">Won first place in the Global Hackathon with project "EcoTracker" - an AI-powered sustainability monitoring system.</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-green-500 pl-4 py-2">
+                                    <h3 class="font-bold text-lg">Developer of the Year</h3>
+                                    <p class="text-gray-600 dark:text-gray-300">Recognized by Tech Community Awards for contributions to open-source projects in 2022.</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-purple-500 pl-4 py-2">
+                                    <h3 class="font-bold text-lg">Certified Cloud Architect</h3>
+                                    <p class="text-gray-600 dark:text-gray-300">Achieved AWS Certified Solutions Architect - Professional certification in 2021.</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-yellow-500 pl-4 py-2">
+                                    <h3 class="font-bold text-lg">Best Research Paper</h3>
+                                    <p class="text-gray-600 dark:text-gray-300">Awarded for "Machine Learning Applications in Cybersecurity" at International Tech Conference 2020.</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-red-500 pl-4 py-2">
+                                    <h3 class="font-bold text-lg">Top Contributor Award</h3>
+                                    <p class="text-gray-600 dark:text-gray-300">Recognized as top contributor to React Open Source Community in 2019.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 class="font-bold mb-4 text-lg">Certifications</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="font-medium">AWS Certified Solutions Architect</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Amazon Web Services - 2021</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Google Certified Professional Data Engineer</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Google Cloud - 2020</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Certified Kubernetes Administrator</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Cloud Native Computing Foundation - 2019</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 class="font-bold mb-4 text-lg">Awards</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="font-medium">Innovation Excellence Award</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Tech Innovators Forum - 2022</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Community Impact Award</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Developer Community - 2021</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">Rising Star in Tech</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Tech Magazine - 2020</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Organizations Page -->
+                    <div id="organizationsPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <h2 class="text-2xl font-bold mb-6">Organizations & Memberships</h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center card-hover">
+                                    <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                        <i class="fas fa-users text-blue-500 dark:text-blue-300 text-2xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold">Developer Community</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Member since 2018</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center card-hover">
+                                    <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                                        <i class="fas fa-leaf text-green-500 dark:text-green-300 text-2xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold">Green Tech Initiative</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Board Member since 2020</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center card-hover">
+                                    <div class="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                                        <i class="fas fa-lock text-purple-500 dark:text-purple-300 text-2xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold">Cybersecurity Alliance</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Contributor since 2019</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center card-hover">
+                                    <div class="w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+                                        <i class="fas fa-graduation-cap text-yellow-500 dark:text-yellow-300 text-2xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold">Tech Education Foundation</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Mentor since 2021</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center card-hover">
+                                    <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                                        <i class="fab fa-react text-red-500 dark:text-red-300 text-2xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold">React Open Source</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Core Contributor since 2018</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center card-hover">
+                                    <div class="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                        <i class="fas fa-robot text-indigo-500 dark:text-indigo-300 text-2xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold">AI Developers Network</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Member since 2020</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="font-bold mb-4 text-lg">Leadership Roles</h3>
+                            <div class="space-y-4">
+                                <div class="border-b pb-4 border-gray-200 dark:border-gray-700">
+                                    <h4 class="font-medium">President - Developer Community (2022-Present)</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">Leading a community of 5000+ developers, organizing events, and fostering collaboration.</p>
+                                </div>
+                                <div class="border-b pb-4 border-gray-200 dark:border-gray-700">
+                                    <h4 class="font-medium">Tech Lead - Green Tech Initiative (2021-2022)</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">Oversaw development of sustainability-focused tech solutions with a team of 15 engineers.</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">Mentor Coordinator - Tech Education Foundation (2020-Present)</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">Manage a team of 30 mentors helping new developers enter the tech industry.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills & Experience Page -->
+                    <div id="skillsPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <h2 class="text-2xl font-bold mb-6">Skills & Experience</h2>
+                            
+                            <h3 class="font-bold text-lg mb-4">Technical Skills</h3>
+                            <div class="space-y-4 mb-8">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>JavaScript/TypeScript</span>
+                                        <span>95%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                        <div class="bg-blue-500 h-2.5 rounded-full skill-bar" style="width: 95%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>React & React Native</span>
+                                        <span>90%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                        <div class="bg-blue-500 h-2.5 rounded-full skill-bar" style="width: 90%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>Node.js</span>
+                                        <span>88%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                        <div class="bg-blue-500 h-2.5 rounded-full skill-bar" style="width: 88%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>AWS Cloud</span>
+                                        <span>85%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                        <div class="bg-blue-500 h-2.5 rounded-full skill-bar" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>Python</span>
+                                        <span>80%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                        <div class="bg-blue-500 h-2.5 rounded-full skill-bar" style="width: 80%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h3 class="font-bold text-lg mb-4">Professional Experience</h3>
+                            <div class="space-y-6">
+                                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                    <h4 class="font-bold">Senior Full Stack Developer</h4>
+                                    <p class="text-blue-500">Tech Solutions Inc. • 2020-Present</p>
+                                    <p class="text-gray-600 dark:text-gray-300 mt-2">Lead a team of developers building enterprise SaaS applications. Architect scalable solutions using microservices and cloud technologies.</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-green-500 pl-4 py-2">
+                                    <h4 class="font-bold">Frontend Developer</h4>
+                                    <p class="text-green-500">Digital Creative Agency • 2018-2020</p>
+                                    <p class="text-gray-600 dark:text-gray-300 mt-2">Developed responsive web applications for clients across various industries. Implemented modern UI/UX practices.</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-purple-500 pl-4 py-2">
+                                    <h4 class="font-bold">Junior Developer</h4>
+                                    <p class="text-purple-500">Startup Ventures • 2016-2018</p>
+                                    <p class="text-gray-600 dark:text-gray-300 mt-2">Contributed to building MVP products. Gained experience in full-stack development and agile methodologies.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 class="font-bold text-lg mb-4">Additional Skills</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Docker</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Kubernetes</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">GraphQL</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">MongoDB</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">PostgreSQL</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Redis</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">CI/CD</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Jest</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Cypress</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">SASS</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Tailwind</span>
+                                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Git</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 class="font-bold text-lg mb-4">Languages</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span>English</span>
+                                            <span>Fluent</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span>Spanish</span>
+                                            <span>Professional</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 80%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span>French</span>
+                                            <span>Intermediate</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Page -->
+                    <div id="projectsPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">My Projects</h2>
+                                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>Add Project
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow card-hover">
+                                    <div class="h-40 bg-blue-500 flex items-center justify-center">
+                                        <i class="fas fa-project-diagram text-white text-5xl"></i>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg mb-2">Portfolio Website</h3>
+                                        <p class="text-gray-600 dark:text-gray-300 mb-4">A responsive personal portfolio built with React and Tailwind CSS.</p>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex space-x-2">
+                                                <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 text-xs rounded">React</span>
+                                                <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-500 dark:text-purple-300 text-xs rounded">Tailwind</span>
+                                            </div>
+                                            <a href="#" class="text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow card-hover">
+                                    <div class="h-40 bg-green-500 flex items-center justify-center">
+                                        <i class="fas fa-shopping-cart text-white text-5xl"></i>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg mb-2">E-commerce Platform</h3>
+                                        <p class="text-gray-600 dark:text-gray-300 mb-4">Full-featured online store with payment integration and admin dashboard.</p>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex space-x-2">
+                                                <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 text-xs rounded">React</span>
+                                                <span class="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-500 dark:text-red-300 text-xs rounded">Node.js</span>
+                                                <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-500 dark:text-yellow-300 text-xs rounded">MongoDB</span>
+                                            </div>
+                                            <a href="#" class="text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow card-hover">
+                                    <div class="h-40 bg-purple-500 flex items-center justify-center">
+                                        <i class="fas fa-robot text-white text-5xl"></i>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg mb-2">AI Chatbot</h3>
+                                        <p class="text-gray-600 dark:text-gray-300 mb-4">Natural language processing chatbot for customer support.</p>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex space-x-2">
+                                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-500 dark:text-green-300 text-xs rounded">Python</span>
+                                                <span class="px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-500 dark:text-indigo-300 text-xs rounded">TensorFlow</span>
+                                            </div>
+                                            <a href="#" class="text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow card-hover">
+                                    <div class="h-40 bg-yellow-500 flex items-center justify-center">
+                                        <i class="fas fa-mobile-alt text-white text-5xl"></i>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg mb-2">Fitness App</h3>
+                                        <p class="text-gray-600 dark:text-gray-300 mb-4">Mobile application for tracking workouts and nutrition.</p>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex space-x-2">
+                                                <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 text-xs rounded">React Native</span>
+                                                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-300 text-xs rounded">Firebase</span>
+                                            </div>
+                                            <a href="#" class="text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow card-hover">
+                                    <div class="h-40 bg-red-500 flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-white text-5xl"></i>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg mb-2">Analytics Dashboard</h3>
+                                        <p class="text-gray-600 dark:text-gray-300 mb-4">Real-time data visualization and business intelligence tool.</p>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex space-x-2">
+                                                <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 text-xs rounded">Vue.js</span>
+                                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-500 dark:text-green-300 text-xs rounded">D3.js</span>
+                                                <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-500 dark:text-purple-300 text-xs rounded">Express</span>
+                                            </div>
+                                            <a href="#" class="text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow card-hover">
+                                    <div class="h-40 bg-indigo-500 flex items-center justify-center">
+                                        <i class="fas fa-lock text-white text-5xl"></i>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg mb-2">Password Manager</h3>
+                                        <p class="text-gray-600 dark:text-gray-300 mb-4">Secure vault for storing and managing passwords with encryption.</p>
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex space-x-2">
+                                                <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 text-xs rounded">Electron</span>
+                                                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-300 text-xs rounded">TypeScript</span>
+                                            </div>
+                                            <a href="#" class="text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="font-bold text-lg mb-4">Open Source Contributions</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b dark:border-gray-700">
+                                            <th class="text-left py-2">Project</th>
+                                            <th class="text-left py-2">Role</th>
+                                            <th class="text-left py-2">Contributions</th>
+                                            <th class="text-left py-2">Year</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b dark:border-gray-700">
+                                            <td class="py-3">React</td>
+                                            <td>Contributor</td>
+                                            <td>Performance improvements, bug fixes</td>
+                                            <td>2022</td>
+                                        </tr>
+                                        <tr class="border-b dark:border-gray-700">
+                                            <td class="py-3">VS Code</td>
+                                            <td>Extension Developer</td>
+                                            <td>Created popular theme extension</td>
+                                            <td>2021</td>
+                                        </tr>
+                                        <tr class="border-b dark:border-gray-700">
+                                            <td class="py-3">Tailwind CSS</td>
+                                            <td>Plugin Author</td>
+                                            <td>Developed animation plugin</td>
+                                            <td>2020</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-3">Express.js</td>
+                                            <td>Documentation</td>
+                                            <td>Improved API documentation</td>
+                                            <td>2019</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Blog Page -->
+                    <div id="blogPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">My Blog</h2>
+                                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>New Post
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <div class="border-b dark:border-gray-700 pb-6">
+                                    <h3 class="text-xl font-bold mb-2">The Future of React in 2023</h3>
+                                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                        <span>Published on June 15, 2023</span>
+                                        <span class="mx-2">•</span>
+                                        <span>8 min read</span>
+                                        <span class="mx-2">•</span>
+                                        <span class="text-blue-500">React</span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 mb-4">Exploring the upcoming features in React 18 and how they will change the way we build applications. From concurrent rendering to server components, this article covers all the exciting developments...</p>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex space-x-2">
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Frontend</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">JavaScript</span>
+                                        </div>
+                                        <a href="#" class="text-blue-500 hover:underline">Read More</a>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-b dark:border-gray-700 pb-6">
+                                    <h3 class="text-xl font-bold mb-2">Building Scalable Microservices with Node.js</h3>
+                                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                        <span>Published on May 2, 2023</span>
+                                        <span class="mx-2">•</span>
+                                        <span>12 min read</span>
+                                        <span class="mx-2">•</span>
+                                        <span class="text-green-500">Backend</span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 mb-4">A comprehensive guide to designing and implementing microservices architecture using Node.js. Learn about service discovery, API gateways, containerization, and best practices for maintaining a distributed system...</p>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex space-x-2">
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Node.js</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Docker</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Kubernetes</span>
+                                        </div>
+                                        <a href="#" class="text-blue-500 hover:underline">Read More</a>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-b dark:border-gray-700 pb-6">
+                                    <h3 class="text-xl font-bold mb-2">Machine Learning for Web Developers</h3>
+                                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                        <span>Published on March 28, 2023</span>
+                                        <span class="mx-2">•</span>
+                                        <span>15 min read</span>
+                                        <span class="mx-2">•</span>
+                                        <span class="text-purple-500">AI</span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 mb-4">How JavaScript developers can leverage TensorFlow.js to bring machine learning capabilities to the browser. Practical examples include image recognition, natural language processing, and recommendation systems...</p>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex space-x-2">
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Machine Learning</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">JavaScript</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">TensorFlow</span>
+                                        </div>
+                                        <a href="#" class="text-blue-500 hover:underline">Read More</a>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">The Complete Guide to Web Performance Optimization</h3>
+                                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                        <span>Published on February 10, 2023</span>
+                                        <span class="mx-2">•</span>
+                                        <span>20 min read</span>
+                                        <span class="mx-2">•</span>
+                                        <span class="text-yellow-500">Performance</span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 mb-4">From critical rendering path to lazy loading, this guide covers all aspects of making your website lightning fast. Includes modern techniques like code splitting, prefetching, and optimizing web fonts...</p>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex space-x-2">
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Web</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Optimization</span>
+                                            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">Lighthouse</span>
+                                        </div>
+                                        <a href="#" class="text-blue-500 hover:underline">Read More</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="font-bold text-lg mb-4">Popular Tags</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full">JavaScript</span>
+                                <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-500 dark:text-green-300 rounded-full">React</span>
+                                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-500 dark:text-purple-300 rounded-full">Node.js</span>
+                                <span class="px-3 py-1 bg-red-100 dark:bg-red-900 text-red-500 dark:text-red-300 rounded-full">CSS</span>
+                                <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-500 dark:text-yellow-300 rounded-full">Performance</span>
+                                <span class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-500 dark:text-indigo-300 rounded-full">TypeScript</span>
+                                <span class="px-3 py-1 bg-pink-100 dark:bg-pink-900 text-pink-500 dark:text-pink-300 rounded-full">GraphQL</span>
+                                <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">Webpack</span>
+                                <span class="px-3 py-1 bg-teal-100 dark:bg-teal-900 text-teal-500 dark:text-teal-300 rounded-full">Docker</span>
+                                <span class="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-500 dark:text-orange-300 rounded-full">Testing</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Page -->
+                    <div id="contactPage" class="page-content hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                            <h2 class="text-2xl font-bold mb-6">Contact Me</h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                                    <h3 class="font-bold text-lg mb-4">Get in Touch</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="p-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300">
+                                                <i class="fas fa-envelope"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="font-medium">Email</p>
+                                                <p class="text-gray-600 dark:text-gray-300">yuan@example.com</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="p-2 rounded-full bg-green-100 dark:bg-green-900 text-green-500 dark:text-green-300">
+                                                <i class="fas fa-phone"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="font-medium">Phone</p>
+                                                <p class="text-gray-600 dark:text-gray-300">+1 (123) 456-7890</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="p-2 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-500 dark:text-purple-300">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="font-medium">Location</p>
+                                                <p class="text-gray-600 dark:text-gray-300">San Francisco, CA</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                                    <h3 class="font-bold text-lg mb-4">Social Media</h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <a href="#" class="flex items-center p-3 bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition">
+                                            <i class="fab fa-twitter text-xl mr-2"></i>
+                                            <span>Twitter</span>
+                                        </a>
+                                        <a href="#" class="flex items-center p-3 bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition">
+                                            <i class="fab fa-github text-xl mr-2"></i>
+                                            <span>GitHub</span>
+                                        </a>
+                                        <a href="#" class="flex items-center p-3 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
+                                            <i class="fab fa-linkedin text-xl mr-2"></i>
+                                            <span>LinkedIn</span>
+                                        </a>
+                                        <a href="#" class="flex items-center p-3 bg-red-100 dark:bg-red-900 text-red-500 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800 transition">
+                                            <i class="fab fa-youtube text-xl mr-2"></i>
+                                            <span>YouTube</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h3 class="font-bold text-lg mb-4">Send a Message</h3>
+                            <form class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="name" class="block mb-1">Name</label>
+                                        <input type="text" id="name" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div>
+                                        <label for="email" class="block mb-1">Email</label>
+                                        <input type="email" id="email" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="subject" class="block mb-1">Subject</label>
+                                    <input type="text" id="subject" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                </div>
+                                <div>
+                                    <label for="message" class="block mb-1">Message</label>
+                                    <textarea id="message" rows="5" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600"></textarea>
+                                </div>
+                                <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">Send Message</button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="font-bold text-lg mb-4">Location</h3>
+                            <div class="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-map-marked-alt text-4xl text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+
+                if (username === 'admin' && password === '1234') {
+                    document.getElementById('loginModal').classList.add('modal-hidden');
+                    document.getElementById('loginModal').classList.remove('modal-visible');
+                    document.getElementById('mainLayout').classList.remove('hidden');
+                } else {
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            });
+
+        </script>
+        <script>
+            document.querySelectorAll('[data-page]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-page') + 'Page';
+                
+                // Reset semua halaman
+                document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+
+                // Tampilkan halaman target
+                const targetPage = document.getElementById(target);
+                if (targetPage) targetPage.classList.remove('hidden');
+
+                // Ganti judul halaman
+                const pageTitle = document.getElementById('pageTitle');
+                if (pageTitle) pageTitle.textContent = btn.innerText.trim();
+
+                // Highlight menu aktif
+                document.querySelectorAll('.sidebar .active-nav').forEach(el => el.classList.remove('active-nav'));
+                btn.classList.add('active-nav');
+            });
+            });
+        </script>
+        <script>
+            document.getElementById('themeToggle')?.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+        </script>
+        <script>
+            document.querySelectorAll('.card-hover button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    alert(`Action: ${btn.innerText}`);
+                });
+            });
+        </script>
+        <script>
+            document.querySelector('.flex.items-center .w-8.h-8')?.addEventListener('click', () => {
+                alert('Profile menu clicked (placeholder)');
+            });
+        </script>
+
+
+    </body>
+</html>

@@ -2,7 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
-import { insertUserSchema, insertProjectSchema, insertSkillSchema, insertAchievementSchema } from "@shared/schema";
+import { insertUserSchema, insertProjectSchema, insertSkillSchema, insertAchievementSchema } from "../shared/schema";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 

@@ -1,10 +1,17 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  mysqlTable,
+  varchar,
+  int,
+  text,
+  boolean,
+  timestamp,
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = mysqlTable("users", {
+  id: int("id").primaryKey().autoincrement(),
   username: varchar("username", { length: 50 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   password: text("password").notNull(),
@@ -17,13 +24,13 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const projects = pgTable("projects", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+export const projects = mysqlTable("projects", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").notNull().references(() => users.id),
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 50 }),
-  technologies: text("technologies"), // JSON array as string
+  technologies: text("technologies"),
   imageUrl: text("image_url"),
   projectUrl: text("project_url"),
   githubUrl: text("github_url"),
@@ -32,18 +39,18 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const skills = pgTable("skills", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+export const skills = mysqlTable("skills", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").notNull().references(() => users.id),
   name: varchar("name", { length: 100 }).notNull(),
-  level: integer("level").notNull(), // 1-100
+  level: int("level").notNull(), // 1-100
   category: varchar("category", { length: 50 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const achievements = pgTable("achievements", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+export const achievements = mysqlTable("achievements", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").notNull().references(() => users.id),
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
   icon: varchar("icon", { length: 50 }),
@@ -80,26 +87,26 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
 }));
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertUserSchema = createInsertSchema(users, {
+  id: z.undefined(),
+  createdAt: z.undefined(),
+  updatedAt: z.undefined(),
 });
 
-export const insertProjectSchema = createInsertSchema(projects).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertProjectSchema = createInsertSchema(projects, {
+  id: z.undefined(),
+  createdAt: z.undefined(),
+  updatedAt: z.undefined(),
 });
 
-export const insertSkillSchema = createInsertSchema(skills).omit({
-  id: true,
-  createdAt: true,
+export const insertSkillSchema = createInsertSchema(skills, {
+  id: z.undefined(),
+  createdAt: z.undefined(),
 });
 
-export const insertAchievementSchema = createInsertSchema(achievements).omit({
-  id: true,
-  createdAt: true,
+export const insertAchievementSchema = createInsertSchema(achievements, {
+  id: z.undefined(),
+  createdAt: z.undefined(),
 });
 
 // Types

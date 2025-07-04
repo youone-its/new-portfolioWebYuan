@@ -40,10 +40,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const validatedData = insertUserSchema.extend({
-        email: z.string().email(),
-        password: z.string().min(6),
-      }).parse(req.body);
+      console.log("[REGISTER] Request body:", req.body);
+      const validatedData = insertUserSchema
+        .extend({
+          email: z.string().email(),
+          password: z.string().min(6),
+        })
+        .strict()
+        .parse(req.body);
+
 
       // Check if user already exists
       const existingUser = await storage.getUserByUsername(validatedData.username);
@@ -69,6 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error("REGISTER ERROR:", error);
       res.status(400).json({ message: "Registration failed" });
     }
   });

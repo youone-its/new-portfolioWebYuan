@@ -6,8 +6,8 @@ if (!process.env.DATABASE_URL) {
 
 export default defineConfig({
   out: "./migrations",
-  schema: "./shared/schema.ts",
-  dialect: "postgresql",
+  schema: "./shared/*.ts",       // glob pattern bener
+  dialect: "mysql",             // ← ganti ini!
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
